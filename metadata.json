@@ -1,0 +1,6 @@
+{
+  "name": "Younk Tuner",
+  "description": "Honda PGM-FI motorcycle ECU remapping, live K-Line and Bluetooth telemetry, DTC diagnostics, dyno analyzer, and AI tuning assistant for Android.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

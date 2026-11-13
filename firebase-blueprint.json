@@ -1,0 +1,189 @@
+{
+  "entities": {
+    "EcuTuningMap": {
+      "title": "EcuTuningMap",
+      "description": "Saved Honda PGM-FI 16x16 Fuel VE and Ignition tuning map with rev limiter, target AFR, and bypass flags.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated owner user ID."
+        },
+        "mapName": {
+          "type": "string",
+          "description": "User-defined tuning profile name."
+        },
+        "ecuModelId": {
+          "type": "string",
+          "description": "Catalog identifier for the Honda ECU model."
+        },
+        "ecuName": {
+          "type": "string",
+          "description": "Display name of the Honda motorcycle model."
+        },
+        "partNumber": {
+          "type": "string",
+          "description": "Official Honda ECU part number."
+        },
+        "strategyName": {
+          "type": "string",
+          "description": "Mapping strategy preset (Stock, Drag Race, Touring, Harian, AI Custom)."
+        },
+        "revLimiterRpm": {
+          "type": "integer",
+          "description": "Configured RPM rev limiter."
+        },
+        "launchControlRpm": {
+          "type": "integer",
+          "description": "Configured launch control RPM."
+        },
+        "targetAfr": {
+          "type": "number",
+          "description": "Configured full-load target Air-Fuel Ratio."
+        },
+        "fuelVeValues": {
+          "type": "array",
+          "description": "Flattened 256-entry 16x16 Fuel VE (%) matrix."
+        },
+        "ignitionValues": {
+          "type": "array",
+          "description": "Flattened 256-entry 16x16 Ignition Advance (deg BTDC) matrix."
+        },
+        "checksumHex": {
+          "type": "string",
+          "description": "Calculated CRC32 hex checksum of the map binary."
+        },
+        "offImmobilizer": {
+          "type": "boolean",
+          "description": "Bypass HISS immobilizer flag."
+        },
+        "offSideStand": {
+          "type": "boolean",
+          "description": "Bypass side stand cut-off switch flag."
+        },
+        "offO2Sensor": {
+          "type": "boolean",
+          "description": "Disable O2 closed-loop feedback flag."
+        },
+        "offEctCut": {
+          "type": "boolean",
+          "description": "Disable engine coolant temperature power cut flag."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Tuner mechanical specification notes."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "mapName",
+        "ecuModelId",
+        "ecuName",
+        "partNumber",
+        "strategyName",
+        "revLimiterRpm",
+        "launchControlRpm",
+        "targetAfr",
+        "fuelVeValues",
+        "ignitionValues",
+        "checksumHex",
+        "offImmobilizer",
+        "offSideStand",
+        "offO2Sensor",
+        "offEctCut",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "DynoRunRecord": {
+      "title": "DynoRunRecord",
+      "description": "Recorded chassis dyno pull metrics and drag acceleration summary.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated owner user ID."
+        },
+        "ecuModelId": {
+          "type": "string",
+          "description": "Honda ECU model identifier."
+        },
+        "ecuName": {
+          "type": "string",
+          "description": "Honda motorcycle name."
+        },
+        "mapName": {
+          "type": "string",
+          "description": "Active tuning map label during the pull."
+        },
+        "peakHp": {
+          "type": "number",
+          "description": "Peak wheel horsepower."
+        },
+        "peakHpRpm": {
+          "type": "integer",
+          "description": "RPM at peak horsepower."
+        },
+        "peakTorqueNm": {
+          "type": "number",
+          "description": "Peak torque in Nm."
+        },
+        "peakTorqueRpm": {
+          "type": "integer",
+          "description": "RPM at peak torque."
+        },
+        "zeroToHundredSec": {
+          "type": "number",
+          "description": "Estimated 0-100 km/h sprint time in seconds."
+        },
+        "drag201mSec": {
+          "type": "number",
+          "description": "Estimated 201m drag time in seconds."
+        },
+        "drag402mSec": {
+          "type": "number",
+          "description": "Estimated 402m drag time in seconds."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "ecuModelId",
+        "ecuName",
+        "mapName",
+        "peakHp",
+        "peakHpRpm",
+        "peakTorqueNm",
+        "peakTorqueRpm",
+        "zeroToHundredSec",
+        "drag201mSec",
+        "drag402mSec",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/ecu_maps/{mapId}": {
+      "schema": { "$ref": "#/entities/EcuTuningMap" },
+      "description": "User-owned Honda ECU remapping profiles."
+    },
+    "/users/{userId}/dyno_runs/{runId}": {
+      "schema": { "$ref": "#/entities/DynoRunRecord" },
+      "description": "User-owned chassis dyno run history."
+    }
+  }
+}

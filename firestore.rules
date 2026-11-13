@@ -1,0 +1,131 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Default-Deny Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidEcuMap(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.mapName is string && data.mapName.size() >= 1 && data.mapName.size() <= 80 &&
+             data.ecuModelId is string && data.ecuModelId.size() >= 1 && data.ecuModelId.size() <= 64 &&
+             data.ecuName is string && data.ecuName.size() >= 1 && data.ecuName.size() <= 80 &&
+             data.partNumber is string && data.partNumber.size() >= 1 && data.partNumber.size() <= 40 &&
+             data.strategyName is string && data.strategyName.size() >= 1 && data.strategyName.size() <= 40 &&
+             data.revLimiterRpm is int && data.revLimiterRpm >= 7000 && data.revLimiterRpm <= 16500 &&
+             data.launchControlRpm is int && data.launchControlRpm >= 2500 && data.launchControlRpm <= 10000 &&
+             data.targetAfr is number && data.targetAfr >= 10.0 && data.targetAfr <= 18.0 &&
+             data.fuelVeValues is list && data.fuelVeValues.size() == 256 &&
+             (data.fuelVeValues.size() == 0 || data.fuelVeValues[0] is number) &&
+             data.ignitionValues is list && data.ignitionValues.size() == 256 &&
+             (data.ignitionValues.size() == 0 || data.ignitionValues[0] is number) &&
+             data.checksumHex is string && data.checksumHex.size() >= 4 && data.checksumHex.size() <= 24 &&
+             data.offImmobilizer is bool &&
+             data.offSideStand is bool &&
+             data.offO2Sensor is bool &&
+             data.offEctCut is bool &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 500));
+    }
+
+    function isValidDynoRun(data) {
+      return data.userId is string && data.userId == request.auth.uid &&
+             data.ecuModelId is string && data.ecuModelId.size() >= 1 && data.ecuModelId.size() <= 64 &&
+             data.ecuName is string && data.ecuName.size() >= 1 && data.ecuName.size() <= 80 &&
+             data.mapName is string && data.mapName.size() >= 1 && data.mapName.size() <= 80 &&
+             data.peakHp is number && data.peakHp > 0 && data.peakHp <= 250 &&
+             data.peakHpRpm is int && data.peakHpRpm >= 3000 && data.peakHpRpm <= 17000 &&
+             data.peakTorqueNm is number && data.peakTorqueNm > 0 && data.peakTorqueNm <= 200 &&
+             data.peakTorqueRpm is int && data.peakTorqueRpm >= 2000 && data.peakTorqueRpm <= 16000 &&
+             data.zeroToHundredSec is number && data.zeroToHundredSec > 0 && data.zeroToHundredSec <= 60 &&
+             data.drag201mSec is number && data.drag201mSec > 0 && data.drag201mSec <= 60 &&
+             data.drag402mSec is number && data.drag402mSec > 0 && data.drag402mSec <= 90;
+    }
+
+    match /users/{userId}/ecu_maps/{mapId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(mapId);
+      allow list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(mapId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'mapName', 'ecuModelId', 'ecuName', 'partNumber',
+                         'strategyName', 'revLimiterRpm', 'launchControlRpm', 'targetAfr',
+                         'fuelVeValues', 'ignitionValues', 'checksumHex',
+                         'offImmobilizer', 'offSideStand', 'offO2Sensor', 'offEctCut',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'mapName', 'ecuModelId', 'ecuName', 'partNumber',
+                         'strategyName', 'revLimiterRpm', 'launchControlRpm', 'targetAfr',
+                         'fuelVeValues', 'ignitionValues', 'checksumHex',
+                         'offImmobilizer', 'offSideStand', 'offO2Sensor', 'offEctCut',
+                         'notes', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp &&
+                       incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       isValidEcuMap(incoming());
+
+      allow update: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(mapId) &&
+                       isValidEcuMap(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'mapName', 'strategyName', 'revLimiterRpm', 'launchControlRpm',
+                         'targetAfr', 'fuelVeValues', 'ignitionValues', 'checksumHex',
+                         'offImmobilizer', 'offSideStand', 'offO2Sensor', 'offEctCut',
+                         'notes', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(mapId);
+    }
+
+    match /users/{userId}/dyno_runs/{runId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(runId);
+      allow list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(runId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'ecuModelId', 'ecuName', 'mapName',
+                         'peakHp', 'peakHpRpm', 'peakTorqueNm', 'peakTorqueRpm',
+                         'zeroToHundredSec', 'drag201mSec', 'drag402mSec', 'createdAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'ecuModelId', 'ecuName', 'mapName',
+                         'peakHp', 'peakHpRpm', 'peakTorqueNm', 'peakTorqueRpm',
+                         'zeroToHundredSec', 'drag201mSec', 'drag402mSec', 'createdAt'
+                       ]) &&
+                       incoming().createdAt is timestamp &&
+                       incoming().createdAt <= request.time &&
+                       isValidDynoRun(incoming());
+
+      allow update: if false;
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(runId);
+    }
+  }
+}

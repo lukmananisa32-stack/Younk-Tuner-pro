@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Younk Tuner</string>
+    <string name="cd_ecu_banner">Banner modul ECU Honda PGM-FI</string>
+    <string name="cd_sign_out">Keluar akun Google</string>
+    <string name="cd_hardware_status">Status koneksi hardware ECU</string>
+    <string name="auth_title">Masuk ke Garasi Cloud</string>
+    <string name="auth_subtitle">Sinkronkan file mapping 16x16, hasil dyno crossover, dan profil ECU Honda Anda secara aman dengan akun Google.</string>
+    <string name="sign_in_with_google">Lanjutkan dengan Google</string>
+</resources>
